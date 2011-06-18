@@ -9,7 +9,8 @@ from trac.web import IRequestHandler
 from trac.wiki import IWikiMacroProvider
 from trac.wiki.formatter import system_message
 
-from .diag import detectfont, get_diag, memoize
+from .diag import detectfont, get_diag
+from .cache import memoize
 
 macro_defs = {'blockdiag': 'description',
               'seqdiag': 'description',
