@@ -52,6 +52,15 @@ try:
 except ImportError:
     pass
 
+try:
+    import seqdiag.diagparser
+    import seqdiag.builder
+    import seqdiag.DiagramDraw
+    _diag.add_module('seq', BlockdiagModule(
+        seqdiag.diagparser, seqdiag.builder, seqdiag.DiagramDraw))
+except ImportError:
+    pass
+
 _cache = {}
 
 

@@ -11,8 +11,8 @@ from trac.wiki.formatter import system_message
 
 from .diag import detectfont, get_diag, memoize
 
-macro_defs = {'blockdiag': 'description'}
-
+macro_defs = {'blockdiag': 'description',
+              'seqdiag': 'description'}
 content_types = {'png': 'image/png',
                  'svg': 'image/svg+xml'}
 _conf_section = 'tracblockdiag'
