@@ -70,6 +70,15 @@ try:
 except ImportError:
     pass
 
+try:
+    import nwdiag.diagparser
+    import nwdiag.builder
+    import nwdiag.DiagramDraw
+    _diag.add_module('nw', BlockdiagModule(
+        nwdiag.diagparser, nwdiag.builder, nwdiag.DiagramDraw))
+except ImportError:
+    pass
+
 _cache = {}
 
 
