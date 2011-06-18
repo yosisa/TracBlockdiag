@@ -12,6 +12,7 @@ from trac.wiki.formatter import system_message
 from .diag import detectfont, get_diag, memoize
 
 macro_defs = {'blockdiag': 'description'}
+
 content_types = {'png': 'image/png',
                  'svg': 'image/svg+xml'}
 _conf_section = 'tracblockdiag'
@@ -46,5 +47,5 @@ class BlockdiagRenderer(Component):
 
     def process_request(self, req):
         type_, fmt, data = self.url.match(req.path_info).groups()
-        diag = self.get_diag(b64decode(data), fmt, self.font)
+        diag = self.get_diag(type_, b64decode(data), fmt, self.font)
         req.send(diag, content_types.get(fmt.lower(), ''), status=200)
