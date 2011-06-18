@@ -61,6 +61,15 @@ try:
 except ImportError:
     pass
 
+try:
+    import actdiag.diagparser
+    import actdiag.builder
+    import actdiag.DiagramDraw
+    _diag.add_module('act', BlockdiagModule(
+        actdiag.diagparser, actdiag.builder, actdiag.DiagramDraw))
+except ImportError:
+    pass
+
 _cache = {}
 
 
