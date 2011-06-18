@@ -54,10 +54,6 @@ def detectfont(prefer=None):
             return font
 
 
-def setup_cache(duration=300):
-    setattr(sys.modules[__name__], 'get_diag', memoize(duration)(_get_diag_orig))
-
-
 def get_diag(text, fmt, font=None, antialias=True, nodoctype=False):
     if not isinstance(fmt, basestring):
         return None
@@ -81,7 +77,3 @@ def get_diag(text, fmt, font=None, antialias=True, nodoctype=False):
         except:
             pass
         return diag
-
-
-_get_diag_orig = get_diag
-setup_cache()
