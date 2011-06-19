@@ -18,14 +18,14 @@ setup(name='TracBlockdiag',
       keywords=['trac', 'macro', 'blockdiag'],
       author='Yoshihisa Tanaka',
       author_email='yt.hisa@gmail.com',
-      license='MIT'
+      license='MIT',
       install_requires=['blockdiag>=0.8.1'],
       extras_require={
           'full': ['seqdiag>=0.3.5', 'actdiag>=0.1.5', 'nwdiag>=0.2.4']
           },
+      packages=find_packages(exclude=['*.tests*']),
       entry_points = """
       [trac.plugins]
       tracblockdiag = tracblockdiag.plugin
       """
-      packages=find_packages(exclude=['*.tests*']),
 )
