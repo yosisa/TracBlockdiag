@@ -1,8 +1,24 @@
 from setuptools import find_packages, setup
 
+version = '0.1.0'
+
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: System Administrators'
+    'Programming Language :: Python',
+    'License :: OSI Approved :: MIT License',
+    'Framework :: Trac',
+    'Environment :: Plugins',
+]
+
 setup(name='TracBlockdiag',
-      version='0.1.0',
-      packages=find_packages(exclude=['*.tests*']),
+      version=version,
+      description='Trac plugin that integrate blockdiag into wiki',
+      classifiers=classifiers,
+      keywords=['trac', 'macro', 'blockdiag'],
+      author='Yoshihisa Tanaka',
+      author_email='yt.hisa@gmail.com',
+      license='MIT'
       install_requires=['blockdiag>=0.8.1'],
       extras_require={
           'full': ['seqdiag>=0.3.5', 'actdiag>=0.1.5', 'nwdiag>=0.2.4']
@@ -11,4 +27,5 @@ setup(name='TracBlockdiag',
       [trac.plugins]
       tracblockdiag = tracblockdiag.plugin
       """
-      )
+      packages=find_packages(exclude=['*.tests*']),
+)
