@@ -2,11 +2,14 @@
 
 import os
 import sys
+from threading import RLock
 
 try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
+
+lock = RLock()
 
 
 class BlockdiagSwitch(object):
@@ -57,7 +60,16 @@ def detectfont(prefer=None):
 
 
 def get_diag(type_, text, fmt, font=None, antialias=True, nodoctype=False):
-    return _get_diag(_diag[type_], text, fmt, font, antialias, nodoctype)
+    m = _diag[type_]
+    fmt = fmt.upper()
+    if fmt == 'SVG':
+        return _get_diag(m, text, fmt, font, antialias, nodoctype)
+    elif fmt == 'PNG':
+        lock.acquire()
+        try:
+            return _get_diag(m, text, fmt, font, antialias, nodoctype)
+        finally:
+            lock.release()
 
 
 def _get_diag(m, text, fmt, font=None, antialias=True, nodoctype=False):
