@@ -25,6 +25,7 @@ def memoize(duration=10, interval=50):
             key = compute_key(function, args, kwargs)
             entry = cache.get(key, None)
             if entry is not None and not is_obsolete(entry, duration):
+                entry['time'] = time.time()
                 return entry['value']
             result = function(*args, **kwargs)
             cache[key] = {'value': result, 'time': time.time()}
