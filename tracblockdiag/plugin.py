@@ -27,10 +27,11 @@ class BlockdiagRenderer(Component):
     def __init__(self):
         preferfont = self.config.getlist(_conf_section, 'font')
         cachetime = self.config.getint(_conf_section, 'cachetime', 300)
+        gc_interval = self.config.getint(_conf_section, 'gc_interval', 100)
         self.font = detectfont(preferfont)
         self.url = re.compile(r'/blockdiag/([a-z]+)/(png|svg)/(.+)')
         self.src = 'blockdiag/%(type)s/%(fmt)s/%(data)s'
-        self.get_diag = memoize(cachetime)(get_diag)
+        self.get_diag = memoize(cachetime, gc_interval)(get_diag)
 
     def get_macros(self):
         return macro_defs.keys()
