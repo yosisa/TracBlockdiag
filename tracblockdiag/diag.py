@@ -9,28 +9,17 @@ except ImportError:
     from StringIO import StringIO
 
 
-class BlockdiagModule(object):
-    def __init__(self, diagparser, builder, DiagramDraw):
-        self._diagparser = diagparser
-        self._builder = builder
-        self._DiagramDraw = DiagramDraw
-
-    def __getattr__(self, name):
-        if name in ('parse', 'tokenize'):
-            return getattr(self._diagparser, name)
-        if name == 'ScreenNodeBuilder':
-            return getattr(self._builder, name)
-        if name == 'DiagramDraw':
-            return getattr(self._DiagramDraw, name)
-        return object.__getattr__(self, name)
-
-
 class BlockdiagSwitch(object):
     def __init__(self):
         self._d = {}
+        for name in ('blockdiag', 'seqdiag', 'actdiag', 'nwdiag'):
+            try:
+                self.load_module(name)
+            except ImportError:
+                pass
 
-    def add_module(self, name, module):
-        self._d[name] = module
+    def load_module(self, name):
+        self._d[name[:-4]] = BlockdiagModule(name)
 
     def __getattr__(self, name):
         return self.__getitem__(name)
@@ -39,42 +28,19 @@ class BlockdiagSwitch(object):
         return self._d[key]
 
 
-_diag = BlockdiagSwitch()
-try:
-    import blockdiag.diagparser
-    import blockdiag.builder
-    import blockdiag.DiagramDraw
-    _diag.add_module('block', BlockdiagModule(
-        blockdiag.diagparser, blockdiag.builder, blockdiag.DiagramDraw))
-except ImportError:
-    pass
+class BlockdiagModule(object):
+    def __init__(self, name):
+        self.name = name
+        diagparser = self._from_import(name, 'diagparser')
+        builder = self._from_import(name, 'builder')
+        DiagramDraw = self._from_import(name, 'DiagramDraw')
+        self.parse = diagparser.parse
+        self.tokenize = diagparser.tokenize
+        self.ScreenNodeBuilder = builder.ScreenNodeBuilder
+        self.DiagramDraw = DiagramDraw.DiagramDraw
 
-try:
-    import seqdiag.diagparser
-    import seqdiag.builder
-    import seqdiag.DiagramDraw
-    _diag.add_module('seq', BlockdiagModule(
-        seqdiag.diagparser, seqdiag.builder, seqdiag.DiagramDraw))
-except ImportError:
-    pass
-
-try:
-    import actdiag.diagparser
-    import actdiag.builder
-    import actdiag.DiagramDraw
-    _diag.add_module('act', BlockdiagModule(
-        actdiag.diagparser, actdiag.builder, actdiag.DiagramDraw))
-except ImportError:
-    pass
-
-try:
-    import nwdiag.diagparser
-    import nwdiag.builder
-    import nwdiag.DiagramDraw
-    _diag.add_module('nw', BlockdiagModule(
-        nwdiag.diagparser, nwdiag.builder, nwdiag.DiagramDraw))
-except ImportError:
-    pass
+    def _from_import(self, frm_, imp_):
+        return getattr(__import__('%s.%s' % (frm_, imp_)), imp_)
 
 
 def detectfont(prefer=None):
@@ -117,3 +83,6 @@ def _get_diag(m, text, fmt, font=None, antialias=True, nodoctype=False):
         except:
             pass
         return diag
+
+
+_diag = BlockdiagSwitch()
