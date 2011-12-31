@@ -14,15 +14,9 @@ class BlockdiagLoader(object):
         self._d = {}
         for name in ('blockdiag', 'seqdiag', 'actdiag', 'nwdiag'):
             try:
-                self.load_module(name)
+                self._d[name[:-4]] = BlockdiagBuilder(name)
             except ImportError:
                 pass
-
-    def load_module(self, name):
-        parser = _from_import(name, 'parser')
-        builder = _from_import(name, 'builder')
-        drawer = _from_import(name, 'drawer')
-        self._d[name[:-4]] = BlockdiagBuilder(parser, builder, drawer)
 
     def __getattr__(self, name):
         return self.__getitem__(name)
@@ -32,20 +26,29 @@ class BlockdiagLoader(object):
 
 
 class BlockdiagBuilder(object):
-    def __init__(self, parser, builder, drawer):
-        self.parser = parser
-        self.builder = builder
-        self.drawer = drawer
+    def __init__(self, name):
+        self.name = name
+        self.load_module()
+
+    def load_module(self):
+        parser = _from_import(self.name, 'parser')
+        builder = _from_import(self.name, 'builder')
+        drawer = _from_import(self.name, 'drawer')
+
+        # copy needed class/func for easily overriding
+        self.parse_string = parser.parse_string
+        self.ScreenNodeBuilder = builder.ScreenNodeBuilder
+        self.DiagramDraw = drawer.DiagramDraw
 
     def build(self, text, format, options):
-        tree = self.parser.parse_string(text)
-        diagram = self.builder.ScreenNodeBuilder.build(tree)
+        tree = self.parse_string(text)
+        diagram = self.ScreenNodeBuilder.build(tree)
         draw = getattr(self, 'draw_%s' % format.lower())
         return draw(diagram, options)
 
     def draw_png(self, diagram, options):
         sio = StringIO()
-        drawer = self.drawer.DiagramDraw('PNG', diagram, sio, **options)
+        drawer = self.DiagramDraw('PNG', diagram, sio, **options)
         drawer.draw()
         drawer.save()
         png = sio.getvalue()
@@ -56,7 +59,7 @@ class BlockdiagBuilder(object):
         return png
 
     def draw_svg(self, diagram, options):
-        drawer = self.drawer.DiagramDraw('SVG', diagram, None, **options)
+        drawer = self.DiagramDraw('SVG', diagram, None, **options)
         drawer.draw()
         return drawer.save()
 
