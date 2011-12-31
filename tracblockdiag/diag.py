@@ -2,14 +2,11 @@
 
 import os
 import sys
-from threading import RLock
 
 try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-
-lock = RLock()
 
 
 class BlockdiagLoader(object):
@@ -22,7 +19,10 @@ class BlockdiagLoader(object):
                 pass
 
     def load_module(self, name):
-        self._d[name[:-4]] = BlockdiagModule(name)
+        parser = _from_import(name, 'parser')
+        builder = _from_import(name, 'builder')
+        drawer = _from_import(name, 'drawer')
+        self._d[name[:-4]] = BlockdiagBuilder(parser, builder, drawer)
 
     def __getattr__(self, name):
         return self.__getitem__(name)
@@ -31,19 +31,38 @@ class BlockdiagLoader(object):
         return self._d[key]
 
 
-class BlockdiagModule(object):
-    def __init__(self, name):
-        self.name = name
-        diagparser = self._from_import(name, 'diagparser')
-        builder = self._from_import(name, 'builder')
-        DiagramDraw = self._from_import(name, 'DiagramDraw')
-        self.parse = diagparser.parse
-        self.tokenize = diagparser.tokenize
-        self.ScreenNodeBuilder = builder.ScreenNodeBuilder
-        self.DiagramDraw = DiagramDraw.DiagramDraw
+class BlockdiagBuilder(object):
+    def __init__(self, parser, builder, drawer):
+        self.parser = parser
+        self.builder = builder
+        self.drawer = drawer
 
-    def _from_import(self, frm_, imp_):
-        return getattr(__import__('%s.%s' % (frm_, imp_)), imp_)
+    def build(self, text, format, options):
+        tree = self.parser.parse_string(text)
+        diagram = self.builder.ScreenNodeBuilder.build(tree)
+        draw = getattr(self, 'draw_%s' % format.lower())
+        return draw(diagram, options)
+
+    def draw_png(self, diagram, options):
+        sio = StringIO()
+        drawer = self.drawer.DiagramDraw('PNG', diagram, sio, **options)
+        drawer.draw()
+        drawer.save()
+        png = sio.getvalue()
+        try:
+            sio.close()
+        except:
+            pass
+        return png
+
+    def draw_svg(self, diagram, options):
+        drawer = self.drawer.DiagramDraw('SVG', diagram, None, **options)
+        drawer.draw()
+        return drawer.save()
+
+
+def _from_import(frm_, imp_):
+    return getattr(__import__('%s.%s' % (frm_, imp_)), imp_)
 
 
 def detectfont(prefer=None):
@@ -60,41 +79,9 @@ def detectfont(prefer=None):
 
 
 def get_diag(type_, text, fmt, font=None, antialias=True, nodoctype=False):
-    m = _diag[type_]
-    fmt = fmt.upper()
-    if fmt == 'SVG':
-        return _get_diag(m, text, fmt, font, antialias, nodoctype)
-    elif fmt == 'PNG':
-        lock.acquire()
-        try:
-            return _get_diag(m, text, fmt, font, antialias, nodoctype)
-        finally:
-            lock.release()
-
-
-def _get_diag(m, text, fmt, font=None, antialias=True, nodoctype=False):
-    if not isinstance(fmt, basestring):
-        return None
-    fmt = fmt.upper()
-    if fmt not in ('SVG', 'PNG'):
-        return None
-
-    tree = m.parse(m.tokenize(text))
-    diagram = m.ScreenNodeBuilder.build(tree)
-    fp = None if fmt == 'SVG' else StringIO()
-    drawer = m.DiagramDraw(fmt, diagram, fp, font=font,
-                           antialias=antialias, nodoctype=nodoctype)
-    drawer.draw()
-    if fmt == 'SVG':
-        return drawer.save()
-    if fmt == 'PNG':
-        drawer.save()
-        diag = fp.getvalue()
-        try:
-            fp.close()
-        except:
-            pass
-        return diag
+    builder = _diag[type_]
+    options = {'font': font, 'antialias': antialias, 'nodoctype': nodoctype}
+    return builder.build(text, fmt, options)
 
 
 _diag = BlockdiagLoader()
