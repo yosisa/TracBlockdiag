@@ -12,7 +12,7 @@ except ImportError:
 lock = RLock()
 
 
-class BlockdiagSwitch(object):
+class BlockdiagLoader(object):
     def __init__(self):
         self._d = {}
         for name in ('blockdiag', 'seqdiag', 'actdiag', 'nwdiag'):
@@ -97,4 +97,4 @@ def _get_diag(m, text, fmt, font=None, antialias=True, nodoctype=False):
         return diag
 
 
-_diag = BlockdiagSwitch()
+_diag = BlockdiagLoader()
