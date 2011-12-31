@@ -13,10 +13,21 @@ class BlockdiagLoader(object):
     def __init__(self):
         self._d = {}
         for name in ('blockdiag', 'seqdiag', 'actdiag', 'nwdiag'):
-            try:
-                self._d[name[:-4]] = BlockdiagBuilder(name)
-            except ImportError:
-                pass
+            builder = self.make_builder(name) or self.make_legacy_builder(name)
+            if builder is not None:
+                self._d[name[:-4]] = builder
+
+    def make_builder(self, name):
+        try:
+            return BlockdiagBuilder(name)
+        except ImportError:
+            return None
+
+    def make_legacy_builder(self, name):
+        try:
+            return LegacyBlockdiagBuilder(name)
+        except ImportError:
+            return None
 
     def __getattr__(self, name):
         return self.__getitem__(name)
@@ -62,6 +73,25 @@ class BlockdiagBuilder(object):
         drawer = self.DiagramDraw('SVG', diagram, None, **options)
         drawer.draw()
         return drawer.save()
+
+
+class LegacyBlockdiagBuilder(BlockdiagBuilder):
+    """Blockdiag Builder for Compatibility"""
+
+    def load_module(self):
+        diagparser = _from_import(self.name, 'diagparser')
+        builder = _from_import(self.name, 'builder')
+        DiagramDraw = _from_import(self.name, 'DiagramDraw')
+
+        self.parse = diagparser.parse
+        self.tokenize = diagparser.tokenize
+        self.ScreenNodeBuilder = builder.ScreenNodeBuilder
+        self.DiagramDraw = DiagramDraw.DiagramDraw
+
+    def parse_string(self, text):
+        if isinstance(text, str):
+            text = text.decode('utf-8')
+        return self.parse(self.tokenize(text))
 
 
 def _from_import(frm_, imp_):
