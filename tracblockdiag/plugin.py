@@ -10,7 +10,7 @@ from trac.web import IRequestHandler
 from trac.wiki import IWikiMacroProvider
 from trac.wiki.formatter import system_message
 
-from .diag import detectfont, get_diag
+from .diag import get_diag
 from .cache import memoize
 
 macro_defs = {'blockdiag': 'description',
@@ -26,10 +26,9 @@ class BlockdiagRenderer(Component):
     implements(IWikiMacroProvider, IRequestHandler)
 
     def __init__(self):
-        preferfont = self.config.getlist(_conf_section, 'font')
+        self.font = self.config.getlist(_conf_section, 'font')
         cachetime = self.config.getint(_conf_section, 'cachetime', 300)
         gc_interval = self.config.getint(_conf_section, 'gc_interval', 100)
-        self.font = detectfont(preferfont)
         self.url = re.compile(r'/blockdiag/([a-z]+)/(png|svg)/(.+)')
         self.src = 'blockdiag/%(type)s/%(fmt)s/%(data)s'
         self.get_diag = memoize(cachetime, gc_interval)(get_diag)
