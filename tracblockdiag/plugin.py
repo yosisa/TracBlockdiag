@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+from bz2 import compress, decompress
 from base64 import b64encode, b64decode
 
 from trac.core import *
@@ -41,7 +42,7 @@ class BlockdiagRenderer(Component):
 
     def expand_macro(self, formatter, name, content, args=None):
         args = args or {}
-        params = {'type': name[:-4], 'data': b64encode(content),
+        params = {'type': name[:-4], 'data': b64encode(compress(content)),
                   'fmt': args.pop('type', 'png')}
         args['src'] = formatter.req.href(self.src % params)
         return html.img(**args)
@@ -51,5 +52,6 @@ class BlockdiagRenderer(Component):
 
     def process_request(self, req):
         type_, fmt, data = self.url.match(req.path_info).groups()
-        diag = self.get_diag(type_, b64decode(data), fmt, self.font)
+        text = decompress(b64decode(data))
+        diag = self.get_diag(type_, text, fmt, self.font)
         req.send(diag, content_types.get(fmt.lower(), ''), status=200)
