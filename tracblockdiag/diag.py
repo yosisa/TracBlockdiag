@@ -12,7 +12,7 @@ except ImportError:
 class BlockdiagLoader(object):
     def __init__(self):
         self._d = {}
-        for name in ('blockdiag', 'seqdiag', 'actdiag', 'nwdiag'):
+        for name in ('blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'rackdiag'):
             builder = self.make_builder(name) or self.make_legacy_builder(name)
             if builder is not None:
                 self._d[name[:-4]] = builder

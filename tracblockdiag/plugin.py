@@ -16,7 +16,8 @@ from .cache import memoize
 macro_defs = {'blockdiag': 'description',
               'seqdiag': 'description',
               'actdiag': 'description',
-              'nwdiag': 'description'}
+              'nwdiag': 'description',
+              'rackdiag': 'description'}
 content_types = {'png': 'image/png',
                  'svg': 'image/svg+xml'}
 _conf_section = 'tracblockdiag'
