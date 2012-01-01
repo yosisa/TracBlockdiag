@@ -24,7 +24,7 @@ setup(name='TracBlockdiag',
           'full': ['seqdiag>=0.3.5', 'actdiag>=0.1.5', 'nwdiag>=0.2.4']
           },
       packages=find_packages(exclude=['*.tests*']),
-      entry_points = """
+      entry_points="""
       [trac.plugins]
       tracblockdiag = tracblockdiag.plugin
       """
