@@ -10,7 +10,7 @@ from trac.web import IRequestHandler
 from trac.wiki import IWikiMacroProvider
 from trac.wiki.formatter import system_message
 
-from .diag import get_diag
+from . import diag
 from .cache import memoize
 
 macro_defs = {'blockdiag': 'description',
@@ -32,7 +32,7 @@ class BlockdiagRenderer(Component):
         gc_interval = self.config.getint(_conf_section, 'gc_interval', 100)
         self.url = re.compile(r'/blockdiag/([a-z]+)/(png|svg)/(.+)')
         self.src = 'blockdiag/%(type)s/%(fmt)s/%(data)s'
-        self.get_diag = memoize(cachetime, gc_interval)(get_diag)
+        self.get_diag = memoize(cachetime, gc_interval)(diag.get_diag)
 
     def get_macros(self):
         return macro_defs.keys()
