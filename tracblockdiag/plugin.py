@@ -13,11 +13,18 @@ from trac.wiki.formatter import system_message
 from . import diag
 from .cache import memoize
 
-macro_defs = {'blockdiag': 'description',
-              'seqdiag': 'description',
-              'actdiag': 'description',
-              'nwdiag': 'description',
-              'rackdiag': 'description'}
+_descriptions = {
+    'blockdiag': 'description',
+    'seqdiag': 'description',
+    'actdiag': 'description',
+    'nwdiag': 'description',
+    'rackdiag': 'description'
+}
+
+macro_defs = {}
+for name in diag.loader.available_builders():
+    macro_defs[name] = _descriptions[name]
+
 content_types = {'png': 'image/png',
                  'svg': 'image/svg+xml'}
 _conf_section = 'tracblockdiag'
