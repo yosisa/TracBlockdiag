@@ -48,3 +48,31 @@ class TestGC(unittest.TestCase):
 
     def tearDown(self):
         cache.cache = {}
+
+
+class TestMemoize(unittest.TestCase):
+    def setUp(self):
+        cache.cache = {}
+        self.args = (1, 2)
+        self.key = cache.compute_key(self.foo_meth, self.args, {})
+
+    def foo_meth(self, a, b):
+        return a + b
+
+    def test_memoize(self):
+        # execute function and cache result
+        meth = cache.memoize(300)(self.foo_meth)
+        self.assertEqual(meth(*self.args), 3)
+        self.assertEqual(cache.cache.keys(), [self.key])
+        # pollute cache, check that return value is polluted
+        cache.cache[self.key]['value'] = 4
+        self.assertEqual(meth(*self.args), 4)
+        self.assertEqual(cache.cache.keys(), [self.key])
+        # cache is expired, re-calculate
+        cache.cache[self.key]['time'] -= 300
+        self.assertEqual(meth(*self.args), 3)
+        self.assertEqual(cache.cache.keys(), [self.key])
+        self.assertEqual(cache.cache[self.key]['value'], 3)
+
+    def tearDown(self):
+        cache.cache = {}
