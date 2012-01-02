@@ -13,17 +13,29 @@ from trac.wiki.formatter import system_message
 from . import diag
 from .cache import memoize
 
+_template = u"""
+= What's this? =
+Generate %(kind)s diagram from source text.
+
+See [http://blockdiag.com/en/%(module)s/ %(module)s (en)] or
+[http://blockdiag.com/ja/%(module)s/ for Japanese]
+
+== Arguments (Only Trac 0.12 or later) ==
+ `type`:: Image format (png or svg)
+ `others`:: Used to IMG tag attributes
+"""
+
 _descriptions = {
-    'blockdiag': 'description',
-    'seqdiag': 'description',
-    'actdiag': 'description',
-    'nwdiag': 'description',
-    'rackdiag': 'description'
+    'blockdiag': {'kind': 'block', 'module': 'blockdiag'},
+    'seqdiag': {'kind': 'sequence', 'module': 'seqdiag'},
+    'actdiag': {'kind': 'activity', 'module': 'actdiag'},
+    'nwdiag': {'kind': 'network', 'module': 'nwdiag'},
+    'rackdiag': {'kind': 'rack', 'module': 'nwdiag'}
 }
 
 macro_defs = {}
 for name in diag.loader.available_builders():
-    macro_defs[name] = _descriptions[name]
+    macro_defs[name] = _template % _descriptions[name]
 
 content_types = {'png': 'image/png',
                  'svg': 'image/svg+xml'}
