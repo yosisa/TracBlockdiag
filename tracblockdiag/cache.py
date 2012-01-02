@@ -20,7 +20,7 @@ def compute_key(function, args, kwargs):
 def memoize(duration=300):
     def _memoize(function):
         def __memoize(*args, **kwargs):
-            gc()
+            gc.run()
             key = compute_key(function, args, kwargs)
             entry = cache.get(key, None)
             if entry is not None and not is_obsolete(entry, duration):
@@ -40,7 +40,7 @@ class GC(object):
         self.lock = RLock()
         self.count = self.interval
 
-    def __call__(self):
+    def run(self):
         self.count -= 1
         if self.count > 0:
             return
