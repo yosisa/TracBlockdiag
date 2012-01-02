@@ -57,5 +57,14 @@ class TestLegacyBlockdiagBuilder(unittest.TestCase, BlockdiagBuildMixin):
         self.builder = diag.LegacyBlockdiagBuilder('blockdiag')
 
 
+class TestBlockdiagLoader(unittest.TestCase):
+    def setUp(self):
+        diag.BlockdiagLoader.search_builders = ['blockdiag']
+        self.loader = diag.BlockdiagLoader()
+
+    def test_available_builders(self):
+        self.assertEqual(self.loader.available_builders(), ['blockdiag'])
+
+
 if __name__ == '__main__':
     unittest.main()
