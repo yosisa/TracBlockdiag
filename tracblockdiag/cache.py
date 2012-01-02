@@ -51,7 +51,7 @@ class GC(object):
             self.count = self.interval
             for key in cache.keys():
                 entry = cache.get(key, None)
-                if entry is not None and is_obsolete(entry, duration):
+                if entry is not None and is_obsolete(entry, self.duration):
                     cache.pop(entry, None)
         finally:
-            lock.release()
+            self.lock.release()
