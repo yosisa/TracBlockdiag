@@ -9,9 +9,11 @@ except ImportError:
 
 
 class BlockdiagLoader(object):
+    search_builders = ['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'rackdiag']
+
     def __init__(self):
         self._d = {}
-        for name in ('blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'rackdiag'):
+        for name in self.search_builders:
             builder = self.make_builder(name) or self.make_legacy_builder(name)
             if builder is not None:
                 self._d[name[:-4]] = builder
@@ -27,6 +29,9 @@ class BlockdiagLoader(object):
             return LegacyBlockdiagBuilder(name)
         except ImportError:
             return None
+
+    def available_builders(self):
+        return [x + 'diag' for x in self._d.keys()]
 
     def __getattr__(self, name):
         return self.__getitem__(name)
