@@ -115,10 +115,10 @@ def detectfont(prefer=None):
 
 
 def get_diag(type_, text, fmt, font=None, antialias=True, nodoctype=False):
-    builder = _diag[type_]
+    builder = loader[type_]
     options = {'antialias': antialias, 'nodoctype': nodoctype}
     options['font'] = detectfont(font)
     return builder.build(text, fmt, options)
 
 
-_diag = BlockdiagLoader()
+loader = BlockdiagLoader()
