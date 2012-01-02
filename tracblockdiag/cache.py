@@ -17,7 +17,7 @@ def compute_key(function, args, kwargs):
     return hashlib.sha1(key).hexdigest()
 
 
-def memoize(duration=30):
+def memoize(duration=300):
     def _memoize(function):
         def __memoize(*args, **kwargs):
             gc()
