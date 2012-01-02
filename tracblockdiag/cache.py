@@ -17,8 +17,7 @@ def compute_key(function, args, kwargs):
     return hashlib.sha1(key).hexdigest()
 
 
-def memoize(duration=10, interval=50):
-    gc = GC(interval, duration)
+def memoize(duration=30):
     def _memoize(function):
         def __memoize(*args, **kwargs):
             gc()
@@ -55,3 +54,13 @@ class GC(object):
                     cache.pop(entry, None)
         finally:
             self.lock.release()
+
+
+def set_gc_params(interval=None, expire_time=None):
+    if interval is not None:
+        gc.interval = interval
+    if expire_time is not None:
+        gc.expire_time = expire_time
+
+
+gc = GC()
