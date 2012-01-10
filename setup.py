@@ -13,7 +13,7 @@ classifiers = [
 
 setup(name='TracBlockdiag',
       version=version,
-      description='Trac plugin that integrate blockdiag into wiki',
+      description='Integrate blockdiag series into Trac wiki',
       classifiers=classifiers,
       keywords=['trac', 'macro', 'blockdiag'],
       author='Yoshihisa Tanaka',
