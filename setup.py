@@ -1,6 +1,9 @@
+import os
 from setuptools import find_packages, setup
 
 version = '0.1.0'
+readme = os.path.join(os.path.dirname(__file__), 'README.rst')
+long_description = open(readme).read()
 
 classifiers = [
     'Development Status :: 3 - Alpha',
@@ -14,6 +17,7 @@ classifiers = [
 setup(name='TracBlockdiag',
       version=version,
       description='Integrate blockdiag series into Trac wiki',
+      long_description=long_description,
       classifiers=classifiers,
       keywords=['trac', 'macro', 'blockdiag'],
       author='Yoshihisa Tanaka',
