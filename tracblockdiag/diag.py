@@ -109,8 +109,6 @@ class LegacyBlockdiagBuilder(BlockdiagBuilder):
         self.DiagramDraw = DiagramDraw.DiagramDraw
 
     def parse_string(self, text):
-        if isinstance(text, str):
-            text = text.decode('utf-8')
         return self.parse(self.tokenize(text))
 
 
