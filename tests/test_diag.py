@@ -17,16 +17,18 @@ def skipUnlessImport(module):
 
 class BlockdiagBuildMixin(object):
     png_header = (0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
-    default_options = {
-        'antialias': False,
-        'nodoctype': False
-    }
     blockdiag_text = """
     {
       A -> B -> C;
            B -> D;
     }
     """
+
+    def setUp(self):
+        self.default_options = {
+            'antialias': False,
+            'nodoctype': False
+        }
 
     def test_attr(self):
         self.assertTrue(hasattr(self.builder, 'parse_string'))
@@ -46,14 +48,16 @@ class BlockdiagBuildMixin(object):
 
 
 @skipUnlessImport('blockdiag.parser')
-class TestBlockdiagBuilder(unittest.TestCase, BlockdiagBuildMixin):
+class TestBlockdiagBuilder(BlockdiagBuildMixin, unittest.TestCase):
     def setUp(self):
+        super(TestBlockdiagBuilder, self).setUp()
         self.builder = diag.BlockdiagBuilder('blockdiag')
 
 
 @skipUnlessImport('blockdiag.diagparser')
-class TestLegacyBlockdiagBuilder(unittest.TestCase, BlockdiagBuildMixin):
+class TestLegacyBlockdiagBuilder(BlockdiagBuildMixin, unittest.TestCase):
     def setUp(self):
+        super(TestBlockdiagBuilder, self).setUp()
         self.builder = diag.LegacyBlockdiagBuilder('blockdiag')
 
 
