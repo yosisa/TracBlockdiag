@@ -7,6 +7,11 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+try:
+    from blockdiag.utils.fontmap import FontMap
+except ImportError:
+    FontMap = None
+
 
 class BlockdiagLoader(object):
     search_builders = ['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'rackdiag']
@@ -55,7 +60,13 @@ class BlockdiagBuilder(object):
         self.ScreenNodeBuilder = builder.ScreenNodeBuilder
         self.DiagramDraw = drawer.DiagramDraw
 
+    def prepare_options(self, options):
+        options['font'] = detectfont(options.get('font', None))
+        if FontMap is not None:
+            options['fontmap'] = self.create_fontmap(options['font'])
+
     def build(self, text, format, options):
+        self.prepare_options(options)
         tree = self.parse_string(text)
         diagram = self.ScreenNodeBuilder.build(tree)
         draw = getattr(self, 'draw_%s' % format.lower())
@@ -77,6 +88,11 @@ class BlockdiagBuilder(object):
         drawer = self.DiagramDraw('SVG', diagram, None, **options)
         drawer.draw()
         return drawer.save()
+
+    def create_fontmap(self, font):
+        fontmap = FontMap()
+        fontmap.set_default_font(font)
+        return fontmap
 
 
 class LegacyBlockdiagBuilder(BlockdiagBuilder):
@@ -120,8 +136,7 @@ def detectfont(prefer=None):
 
 def get_diag(type_, text, fmt, font=None, antialias=True, nodoctype=False):
     builder = loader[type_]
-    options = {'antialias': antialias, 'nodoctype': nodoctype}
-    options['font'] = detectfont(font)
+    options = {'font': font, 'antialias': antialias, 'nodoctype': nodoctype}
     return builder.build(text, fmt, options)
 
 
