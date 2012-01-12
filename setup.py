@@ -6,8 +6,8 @@ readme = os.path.join(os.path.dirname(__file__), 'README.rst')
 long_description = open(readme).read()
 
 classifiers = [
-    'Development Status :: 3 - Alpha',
-    'Intended Audience :: System Administrators'
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: System Administrators',
     'Programming Language :: Python',
     'License :: OSI Approved :: MIT License',
     'Framework :: Trac',
