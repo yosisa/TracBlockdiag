@@ -50,6 +50,8 @@ class BlockdiagRenderer(Component):
         self.default_type = self.config.get(_conf_section, 'default_type',
                                             'svg')
         self.fallback = self.config.getbool(_conf_section, 'fallback', False)
+        self.syntax_check = self.config.getbool(_conf_section, 'syntax_check',
+                                                True)
         cachetime = self.config.getint(_conf_section, 'cachetime', 300)
         gc_interval = self.config.getint(_conf_section, 'gc_interval', 100)
         self.url = re.compile(r'/blockdiag/([a-z]+)/(png|svg)/(.+)')
@@ -66,6 +68,11 @@ class BlockdiagRenderer(Component):
     def expand_macro(self, formatter, name, content, args=None):
         args = args or {}
         diag = name[:-4]
+        if self.syntax_check:
+            result = self.check_syntax(diag, content)
+            if result is not True:
+                return result
+
         type_ = args.pop('type', self.default_type)
         data = b64encode(compress(content.encode('utf-8')))
 
@@ -99,3 +106,13 @@ class BlockdiagRenderer(Component):
 
     def get_url(self, diag, type_, data):
         return self.url_template % {'diag': diag, 'type': type_, 'data': data}
+
+    def check_syntax(self, kind, content):
+        try:
+            diag.loader[kind].parse_string(content)
+            return True
+        except:
+            msg = kind + 'diag: an error occurred while parsing source text.'
+            msg = html.strong(msg)
+            pre = html.pre(content)
+            return html.div(msg, pre)
