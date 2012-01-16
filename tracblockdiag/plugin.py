@@ -48,6 +48,7 @@ class BlockdiagRenderer(Component):
         self.font = self.config.getlist(_conf_section, 'font')
         self.default_type = self.config.get(_conf_section, 'default_type',
                                             'svg')
+        self.fallback = self.config.getbool(_conf_section, 'fallback', False)
         cachetime = self.config.getint(_conf_section, 'cachetime', 300)
         gc_interval = self.config.getint(_conf_section, 'gc_interval', 100)
         self.url = re.compile(r'/blockdiag/([a-z]+)/(png|svg)/(.+)')
@@ -72,6 +73,8 @@ class BlockdiagRenderer(Component):
 
         if type_ == 'png':
             return self.make_png_element(png_url, **args)
+        if not self.fallback:
+            return self.make_svg_element(svg_url, **args)
         svg = self.make_svg_element(svg_url, **args)
         return svg(self.make_png_element(png_url, **args))
 
