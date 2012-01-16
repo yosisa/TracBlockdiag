@@ -51,7 +51,7 @@ class BlockdiagRenderer(Component):
         cachetime = self.config.getint(_conf_section, 'cachetime', 300)
         gc_interval = self.config.getint(_conf_section, 'gc_interval', 100)
         self.url = re.compile(r'/blockdiag/([a-z]+)/(png|svg)/(.+)')
-        self.src = 'blockdiag/%(type)s/%(fmt)s/%(data)s'
+        self.url_template = 'blockdiag/%(diag)s/%(type)s/%(data)s'
         cache.set_gc_params(gc_interval, cachetime)
         self.get_diag = cache.memoize(cachetime)(diag.get_diag)
 
@@ -63,21 +63,17 @@ class BlockdiagRenderer(Component):
 
     def expand_macro(self, formatter, name, content, args=None):
         args = args or {}
+        diag = name[:-4]
+        type_ = args.pop('type', self.default_type)
         data = b64encode(compress(content.encode('utf-8')))
-        type_ = name[:-4]
-        fmt = args.pop('type', self.default_type)
-        params = {'type': type_, 'data': data, 'fmt': 'png'}
-        attrs = args.copy()
-        attrs['src'] = formatter.req.href(self.src % params)
-        img = html.img(**attrs)
-        if fmt == 'png':
-            return img
-        params['fmt'] = 'svg'
-        attrs = args.copy()
-        attrs['data'] = formatter.req.href(self.src % params)
-        attrs['type'] = content_types['svg']
-        obj = html.object(**attrs)(img)
-        return obj
+
+        png_url = formatter.req.href(self.get_url(diag, 'png', data))
+        svg_url = formatter.req.href(self.get_url(diag, 'svg', data))
+
+        if type_ == 'png':
+            return self.make_png_element(png_url, **args)
+        svg = self.make_svg_element(svg_url, **args)
+        return svg(self.make_png_element(png_url, **args))
 
     def match_request(self, req):
         return bool(self.url.match(req.path_info))
@@ -87,3 +83,15 @@ class BlockdiagRenderer(Component):
         text = decompress(b64decode(data)).decode('utf-8')
         diag = self.get_diag(type_, text, fmt, self.font)
         req.send(diag, content_types.get(fmt.lower(), ''), status=200)
+
+    def make_png_element(self, url, **kwargs):
+        kwargs['src'] = url
+        return html.img(**kwargs)
+
+    def make_svg_element(self, url, **kwargs):
+        kwargs['data'] = url
+        kwargs['type'] = content_types['svg']
+        return html.object(**kwargs)
+
+    def get_url(self, diag, type_, data):
+        return self.url_template % {'diag': diag, 'type': type_, 'data': data}
