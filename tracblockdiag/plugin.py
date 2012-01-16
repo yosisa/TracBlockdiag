@@ -62,10 +62,20 @@ class BlockdiagRenderer(Component):
     def expand_macro(self, formatter, name, content, args=None):
         args = args or {}
         data = b64encode(compress(content.encode('utf-8')))
-        params = {'type': name[:-4], 'data': data,
-                  'fmt': args.pop('type', 'png')}
-        args['src'] = formatter.req.href(self.src % params)
-        return html.img(**args)
+        type_ = name[:-4]
+        fmt = args.pop('type', 'png')
+        params = {'type': type_, 'data': data, 'fmt': 'png'}
+        attrs = args.copy()
+        attrs['src'] = formatter.req.href(self.src % params)
+        img = html.img(**attrs)
+        if fmt == 'png':
+            return img
+        params['fmt'] = 'svg'
+        attrs = args.copy()
+        attrs['data'] = formatter.req.href(self.src % params)
+        attrs['type'] = content_types['svg']
+        obj = html.object(**attrs)(img)
+        return obj
 
     def match_request(self, req):
         return bool(self.url.match(req.path_info))
