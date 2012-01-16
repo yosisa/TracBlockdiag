@@ -40,6 +40,7 @@ content_types = {'png': 'image/png',
                  'svg': 'image/svg+xml'}
 _conf_section = 'tracblockdiag'
 
+ALTERNATIVE_TEXT = "Your browser doesn't support svg"
 
 class BlockdiagRenderer(Component):
     implements(IWikiMacroProvider, IRequestHandler)
@@ -74,7 +75,7 @@ class BlockdiagRenderer(Component):
         if type_ == 'png':
             return self.make_png_element(png_url, **args)
         if not self.fallback:
-            return self.make_svg_element(svg_url, **args)
+            return self.make_svg_element(svg_url, **args)(ALTERNATIVE_TEXT)
         svg = self.make_svg_element(svg_url, **args)
         return svg(self.make_png_element(png_url, **args))
 
