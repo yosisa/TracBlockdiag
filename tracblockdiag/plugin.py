@@ -46,6 +46,8 @@ class BlockdiagRenderer(Component):
 
     def __init__(self):
         self.font = self.config.getlist(_conf_section, 'font')
+        self.default_type = self.config.get(_conf_section, 'default_type',
+                                            'svg')
         cachetime = self.config.getint(_conf_section, 'cachetime', 300)
         gc_interval = self.config.getint(_conf_section, 'gc_interval', 100)
         self.url = re.compile(r'/blockdiag/([a-z]+)/(png|svg)/(.+)')
@@ -63,7 +65,7 @@ class BlockdiagRenderer(Component):
         args = args or {}
         data = b64encode(compress(content.encode('utf-8')))
         type_ = name[:-4]
-        fmt = args.pop('type', 'png')
+        fmt = args.pop('type', self.default_type)
         params = {'type': type_, 'data': data, 'fmt': 'png'}
         attrs = args.copy()
         attrs['src'] = formatter.req.href(self.src % params)
