@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from threading import RLock
 
 try:
     from cStringIO import StringIO
@@ -11,6 +12,8 @@ try:
     from blockdiag.utils.fontmap import FontMap
 except ImportError:
     FontMap = None
+
+lock = RLock()
 
 
 class BlockdiagLoader(object):
@@ -135,7 +138,11 @@ def detectfont(prefer=None):
 def get_diag(type_, text, fmt, font=None, antialias=True, nodoctype=False):
     builder = loader[type_]
     options = {'font': font, 'antialias': antialias, 'nodoctype': nodoctype}
-    return builder.build(text, fmt, options)
+    lock.acquire()
+    try:
+        return builder.build(text, fmt, options)
+    finally:
+        lock.release()
 
 
 loader = BlockdiagLoader()
