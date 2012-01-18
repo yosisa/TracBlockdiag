@@ -33,7 +33,7 @@ _descriptions = {
 }
 
 macro_defs = {}
-for name in diag.loader.available_builders():
+for name in diag.available_builders:
     macro_defs[name] = _template % _descriptions[name]
 
 content_types = {'png': 'image/png',
@@ -109,7 +109,7 @@ class BlockdiagRenderer(Component):
 
     def check_syntax(self, kind, content):
         try:
-            diag.loader[kind].parse_string(content)
+            diag.get_builder(kind)().parse_string(content)
             return True
         except:
             msg = kind + 'diag: an error occurred while parsing source text.'

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 from threading import RLock
 
 try:
@@ -13,28 +14,11 @@ try:
 except ImportError:
     FontMap = None
 
+all_builders = ['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'rackdiag']
+available_builders = []
+
+__module__ = sys.modules[__name__]
 lock = RLock()
-
-
-class BlockdiagLoader(object):
-    search_builders = ['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'rackdiag']
-
-    def __init__(self):
-        self._d = {}
-        for name in self.search_builders:
-            try:
-                self._d[name[:-4]] = make_builder(name)
-            except ImportError:
-                pass
-
-    def available_builders(self):
-        return [x + 'diag' for x in self._d.keys()]
-
-    def __getattr__(self, name):
-        return self.__getitem__(name)
-
-    def __getitem__(self, key):
-        return self._d[key]()
 
 
 class BaseBuilder(object):
@@ -140,9 +124,19 @@ def detectfont(prefer=None):
 
 
 def get_diag(type_, text, fmt, font=None, antialias=True, nodoctype=False):
-    builder = loader[type_]
     options = {'font': font, 'antialias': antialias, 'nodoctype': nodoctype}
-    return builder.build(text, fmt, options)
+    builder = get_builder(type_)
+    return builder().build(text, fmt, options)
 
 
-loader = BlockdiagLoader()
+def get_builder(kind):
+    return getattr(__module__, kind.title() + 'diagBuilder')
+
+
+# generate available builders
+for name in all_builders:
+    try:
+        setattr(__module__, name.title() + 'Builder', make_builder(name))
+        available_builders.append(name)
+    except ImportError:
+        pass
