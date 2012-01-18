@@ -49,7 +49,11 @@ class BaseBuilder(object):
     def build(self, text, format, options):
         self.prepare_options(options)
         tree = self.parse_string(text)
-        diagram = self.ScreenNodeBuilder.build(tree)
+        lock.acquire()
+        try:
+            diagram = self.ScreenNodeBuilder.build(tree)
+        finally:
+            lock.release()
         draw = getattr(self, 'draw_%s' % format.lower())
         return draw(diagram, options)
 
@@ -138,11 +142,7 @@ def detectfont(prefer=None):
 def get_diag(type_, text, fmt, font=None, antialias=True, nodoctype=False):
     builder = loader[type_]
     options = {'font': font, 'antialias': antialias, 'nodoctype': nodoctype}
-    lock.acquire()
-    try:
-        return builder.build(text, fmt, options)
-    finally:
-        lock.release()
+    return builder.build(text, fmt, options)
 
 
 loader = BlockdiagLoader()
