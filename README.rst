@@ -91,7 +91,7 @@ Macro synopsis like this::
   }}}
 
 **In Trac 0.11, macro arguments is not supported.
-So, all diagrams is generated with PNG format.**
+So, all diagrams are generated with the format specified in default_type option.**
 
 You can write blockdiag source text as a wiki macro like below. ::
 
@@ -109,10 +109,39 @@ TracBlockdiag has several configuration parameters.
 These parameters are specify in `[tracblockdiag]` section of the `trac.ini` config file.
 These parameters are defined as follows.
 
-=========== ======= ===========================================================================
-name        default description
-=========== ======= ===========================================================================
-font        (auto)  Path to font file which is used in PNG generation.
-cachetime   300     Time in seconds which the plugin caches a generated diagram in.
-gc_interval 100     The number of diagram generation. Unused cache is cleared every this count.
-=========== ======= ===========================================================================
++--------------+--------------+---------+--------------------------------------------------------------------------+
+| name         | type         | default | description                                                              |
++==============+==============+=========+==========================================================================+
+| font         | string array | (auto)  | Paths to font file which are used in PNG generation.                     |
++--------------+--------------+---------+--------------------------------------------------------------------------+
+| cachetime    | int          | 300     | Time in seconds which the plugin caches a generated diagram in.          |
++--------------+--------------+---------+--------------------------------------------------------------------------+
+| gc_interval  | int          | 100     | The number of diagram generation.                                        |
+|              |              |         | Unused cache is cleared every this count.                                |
++--------------+--------------+---------+--------------------------------------------------------------------------+
+| default_type | string       | svg     | Default diagram type to generate.                                        |
++--------------+--------------+---------+--------------------------------------------------------------------------+
+| syntax_check | bool         | True    | Check syntax of source text and show error insted of 500 response.       |
+|              |              |         | Note that when using syntax check, the performance is slightly down.     |
++--------------+--------------+---------+--------------------------------------------------------------------------+
+| fallback     | bool         | False   | Fallback to png image when a browser is not support svg.                 |
+|              |              |         | Note that using fallback causes double image generation because          |
+|              |              |         | major browsers request png image whether svg rendering succeeded or not. |
+|              |              |         | So, enabling this option may causes high load.                           |
++--------------+--------------+---------+--------------------------------------------------------------------------+
+
+History
+=======
+x.x.x (2012-xx-xx)
+  - change default type from png to svg
+  - add option for default type
+  - add option to enable syntax checking for detailed error
+  - support fallback to png if a browser doesn't support svg
+  - fix bug which generating incorrect diagram when there are multiple diagrams in one page
+
+0.1.1 (2012-01-12)
+  - fix bug when source text contains unicode
+  - fix bug which drawing incorrect font while png rendering
+
+0.1.0 (2012-01-11)
+  - first release
