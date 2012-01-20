@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
+from threading import RLock
 
 try:
     from cStringIO import StringIO
@@ -12,53 +14,16 @@ try:
 except ImportError:
     FontMap = None
 
+all_builders = ['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'rackdiag']
+available_builders = []
 
-class BlockdiagLoader(object):
-    search_builders = ['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'rackdiag']
+__module__ = sys.modules[__name__]
+lock = RLock()
 
+
+class BaseBuilder(object):
     def __init__(self):
-        self._d = {}
-        for name in self.search_builders:
-            builder = self.make_builder(name) or self.make_legacy_builder(name)
-            if builder is not None:
-                self._d[name[:-4]] = builder
-
-    def make_builder(self, name):
-        try:
-            return BlockdiagBuilder(name)
-        except ImportError:
-            return None
-
-    def make_legacy_builder(self, name):
-        try:
-            return LegacyBlockdiagBuilder(name)
-        except ImportError:
-            return None
-
-    def available_builders(self):
-        return [x + 'diag' for x in self._d.keys()]
-
-    def __getattr__(self, name):
-        return self.__getitem__(name)
-
-    def __getitem__(self, key):
-        return self._d[key]
-
-
-class BlockdiagBuilder(object):
-    def __init__(self, name):
-        self.name = name
-        self.load_module()
-
-    def load_module(self):
-        parser = _from_import(self.name, 'parser')
-        builder = _from_import(self.name, 'builder')
-        drawer = _from_import(self.name, 'drawer')
-
-        # copy needed class/func for easily overriding
-        self.parse_string = parser.parse_string
-        self.ScreenNodeBuilder = builder.ScreenNodeBuilder
-        self.DiagramDraw = drawer.DiagramDraw
+        raise NotImplementedError
 
     def prepare_options(self, options):
         options['font'] = detectfont(options.get('font', None))
@@ -68,7 +33,11 @@ class BlockdiagBuilder(object):
     def build(self, text, format, options):
         self.prepare_options(options)
         tree = self.parse_string(text)
-        diagram = self.ScreenNodeBuilder.build(tree)
+        lock.acquire()
+        try:
+            diagram = self.ScreenNodeBuilder.build(tree)
+        finally:
+            lock.release()
         draw = getattr(self, 'draw_%s' % format.lower())
         return draw(diagram, options)
 
@@ -95,21 +64,43 @@ class BlockdiagBuilder(object):
         return fontmap
 
 
-class LegacyBlockdiagBuilder(BlockdiagBuilder):
-    """Blockdiag Builder for Compatibility"""
+def make_builder(module):
+    name = module.title() + 'Builder'
+    dct = {
+        'module': module,
+        '__init__': lambda self: None
+    }
+    klass = type(name, (BaseBuilder,), dct)
+    assign_module(klass, module)
+    return klass
 
-    def load_module(self):
-        diagparser = _from_import(self.name, 'diagparser')
-        builder = _from_import(self.name, 'builder')
-        DiagramDraw = _from_import(self.name, 'DiagramDraw')
 
-        self.parse = diagparser.parse
-        self.tokenize = diagparser.tokenize
-        self.ScreenNodeBuilder = builder.ScreenNodeBuilder
-        self.DiagramDraw = DiagramDraw.DiagramDraw
+def assign_module(klass, module):
+    try:
+        _assign_module2(klass, module)
+    except ImportError:
+        # for backward compatibility
+        _assign_module(klass, module)
 
-    def parse_string(self, text):
-        return self.parse(self.tokenize(text))
+
+def _assign_module(klass, module):
+    diagparser = _from_import(module, 'diagparser')
+    builder = _from_import(module, 'builder')
+    DiagramDraw = _from_import(module, 'DiagramDraw')
+    parse = diagparser.parse
+    tokenize = diagparser.tokenize
+    klass.ScreenNodeBuilder = builder.ScreenNodeBuilder
+    klass.DiagramDraw = DiagramDraw.DiagramDraw
+    klass.parse_string = lambda self, text: parse(tokenize(text))
+
+
+def _assign_module2(klass, module):
+    parser = _from_import(module, 'parser')
+    builder = _from_import(module, 'builder')
+    drawer = _from_import(module, 'drawer')
+    klass.ScreenNodeBuilder = builder.ScreenNodeBuilder
+    klass.DiagramDraw = drawer.DiagramDraw
+    klass.parse_string = lambda self, text: parser.parse_string(text)
 
 
 def _from_import(frm_, imp_):
@@ -133,9 +124,19 @@ def detectfont(prefer=None):
 
 
 def get_diag(type_, text, fmt, font=None, antialias=True, nodoctype=False):
-    builder = loader[type_]
     options = {'font': font, 'antialias': antialias, 'nodoctype': nodoctype}
-    return builder.build(text, fmt, options)
+    builder = get_builder(type_)
+    return builder().build(text, fmt, options)
 
 
-loader = BlockdiagLoader()
+def get_builder(kind):
+    return getattr(__module__, kind.title() + 'diagBuilder')
+
+
+# generate available builders
+for name in all_builders:
+    try:
+        setattr(__module__, name.title() + 'Builder', make_builder(name))
+        available_builders.append(name)
+    except ImportError:
+        pass
