@@ -132,7 +132,7 @@ These parameters are defined as follows.
 
 History
 =======
-x.x.x (2012-xx-xx)
+0.2.0 (2012-01-21)
   - change default type from png to svg
   - add option for default type
   - add option to enable syntax checking for detailed error
