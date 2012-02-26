@@ -23,6 +23,7 @@ setup(name='TracBlockdiag',
       author='Yoshihisa Tanaka',
       author_email='yt.hisa@gmail.com',
       license='MIT',
+      url='https://github.com/yosisa/TracBlockdiag',
       install_requires=['blockdiag>=0.8.1'],
       extras_require={
           'full': ['seqdiag>=0.3.5', 'actdiag>=0.1.5', 'nwdiag>=0.2.4']
