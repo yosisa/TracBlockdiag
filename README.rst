@@ -132,6 +132,9 @@ These parameters are defined as follows.
 
 History
 =======
+0.2.1 (2012-02-26)
+  - fix issue on setup from PyPI
+
 0.2.0 (2012-01-21)
   - change default type from png to svg
   - add option for default type
